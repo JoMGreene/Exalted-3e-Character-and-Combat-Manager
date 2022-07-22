@@ -2,9 +2,7 @@ import sys
 
 from newdice import die_roller
 
-from qttilesetup import AbilityBox, AbilityArray, AttributeArray, WeaponTree, Weapon, ArmorTree, Armor
-
-from qttilesetup2 import Charm, CharmTree
+from qttilesetup import AbilityBox, AbilityArray, AttributeArray, Charm, CharmTree, CharmTreeTab, WeaponTree, Weapon, ArmorTree, Armor
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
@@ -158,15 +156,9 @@ class Main(QMainWindow):
 		self.statstab.setLayout(self.statstab.layout)
 		
 		#Charms Tab Content
-		self.charmstree1 = CharmTree()
-		self.charmstree2 = CharmTree()
-		self.charmstree3 = CharmTree()
-		self.charmstree4 = CharmTree()
+		self.charmstreefull = CharmTreeTab()
 		self.charmstab.layout = QVBoxLayout()
-		self.charmstab.layout.addWidget(self.charmstree1)
-		self.charmstab.layout.addWidget(self.charmstree2)
-		self.charmstab.layout.addWidget(self.charmstree3)
-		self.charmstab.layout.addWidget(self.charmstree4)
+		self.charmstab.layout.addWidget(self.charmstreefull)
 		
 		#Charms Tab Layout
 		self.charmstab.setLayout(self.charmstab.layout)
@@ -269,23 +261,22 @@ class Main(QMainWindow):
 		e.accept()
 	
 	def dropEvent(self, e):
-		pos = e.position()
+		pos = e.pos()
 		widget = e.source()
 
-
-		for n in range(self.charmstab.layout.count()):
-            # Get the widget at each index in turn.
-			w = self.charmstab.layout.itemAt(n).widget()
-			if pos.y() < w.y() + w.size().height() and pos.y() > w.y():
-                # We didn't drag past this widget.
-                # insert to the left of it.
-				self.charmstab.layout.insertWidget(n, widget)
+		for n in range(self.charmstreefull.layout2.count()):
+			# Get the widget at each index in turn.
+			w = self.charmstreefull.layout2.itemAt(n).widget()
+			if pos.x() < w.x() + w.size().width() // 2:
+				# We didn't drag past this widget.
+				# insert to the left of it.
+				self.charmstreefull.layout2.insertWidget(n-1, widget)
 				break
 
 		e.accept()
 	
 if __name__ == "__main__":	
-	app = QApplication([])
+	app = QApplication(sys.argv)
 
 	window = Main()
 	window.show()
