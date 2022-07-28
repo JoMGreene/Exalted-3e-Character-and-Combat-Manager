@@ -1,6 +1,65 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLineEdit, QLabel, QSpinBox, QComboBox, QTextEdit
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLineEdit, QLabel, QSpinBox, QComboBox, QTextEdit, QLayout, QSizePolicy
 from PyQt6.QtGui import QDrag, QPixmap, QPainter, QColor
-from PyQt6.QtCore import QMimeData, Qt, QEvent
+from PyQt6.QtCore import QMimeData, Qt, QEvent, QSize
+
+
+class CharmTreeTab(QWidget):
+	def __init__(self):
+		super().__init__()
+		self.setAcceptDrops(True)
+		self.CharmTreeArray = []
+		self.setSizePolicy(
+			QSizePolicy.Policy.MinimumExpanding,
+			QSizePolicy.Policy.MinimumExpanding
+		)
+		self.addButton = QPushButton('+')
+		self.addButton.clicked.connect(self.add_charm_tree)
+		
+		self.layoutmain = QVBoxLayout()
+		self.layout2 = QVBoxLayout()
+		self.layoutmain.addLayout(self.layout2)
+		self.layoutmain.addWidget(self.addButton)
+		
+		self.layoutmain.setSizeConstraint(QLayout.SizeConstraint.SetMinimumSize)
+		self.setLayout(self.layoutmain)
+		self.add_charm_tree()
+
+	def add_charm_tree(self):
+		self.CharmTreeArray.append(CharmTree())
+		
+		self.layout2.addWidget(self.CharmTreeArray[-1])
+		totheight = 0
+		for i in range(len(self.CharmTreeArray)):
+			totheight += self.CharmTreeArray[i].minimumHeight()
+		self.setMinimumHeight(500 + totheight)
+		self.updateGeometry()
+
+	def dragEnterEvent(self, e):
+		e.accept()
+
+	def dropEvent(self, e):
+		pos = e.position()
+		widget = e.source()
+
+
+		for n in range(self.layout2.count()):
+			# Get the widget at each index in turn.
+			w = self.layout2.itemAt(n).widget()
+			if pos.y() < w.y() + w.size().height() and pos.y() > w.y():
+				# We didn't drag past this widget.
+				# insert to the left of it.
+				self.layout2.insertWidget(n, widget)
+				break
+
+		e.accept()
+
+	def sizeHint(self):
+		return QSize(1000, 700)
+
+
+
+
+
 
 class CharmTree(QWidget):
 	def __init__(self):

@@ -4,9 +4,10 @@ from newdice import die_roller
 
 from qttilesetup import AbilityBox, AbilityArray, AttributeArray, WeaponTree, Weapon, ArmorTree, Armor
 
-from qttilesetup2 import Charm, CharmTree
+from qttilesetup2 import Charm, CharmTree, CharmTreeTab
 
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QScreen
 from PyQt6.QtWidgets import (
 	QApplication,
 	QLabel,
@@ -22,16 +23,24 @@ from PyQt6.QtWidgets import (
 	QSpinBox,
 	QTreeView,
 	QComboBox,
+	QScrollArea
 )
 
 class Main(QMainWindow):
 	def __init__(self):
 		super().__init__()
 		self.setAcceptDrops(True)
-		
 		#Set Title
 		self.setWindowTitle("Exalted 3rd Edition Character Manager")
-		
+
+		self.resize(1200,800)
+		self.setFixedSize(1200,800)
+
+		windowrect = self.frameGeometry()
+		screencenter = self.screen().availableGeometry().center()
+		windowrect.moveCenter(screencenter)
+		self.move(windowrect.topLeft())
+
 		self.chartabs = QTabWidget()
 		self.statstab = QWidget()
 		self.charmstab = QWidget()
@@ -157,20 +166,25 @@ class Main(QMainWindow):
 		
 		self.statstab.setLayout(self.statstab.layout)
 		
+
+
 		#Charms Tab Content
-		self.charmstree1 = CharmTree()
-		self.charmstree2 = CharmTree()
-		self.charmstree3 = CharmTree()
-		self.charmstree4 = CharmTree()
+		self.charmTreeArray = CharmTreeTab()
+
+
+		self.charmTreeScroll = QScrollArea()
+		self.charmTreeScroll.setWidget(self.charmTreeArray)
+
 		self.charmstab.layout = QVBoxLayout()
-		self.charmstab.layout.addWidget(self.charmstree1)
-		self.charmstab.layout.addWidget(self.charmstree2)
-		self.charmstab.layout.addWidget(self.charmstree3)
-		self.charmstab.layout.addWidget(self.charmstree4)
+		self.charmstab.layout.addWidget(self.charmTreeScroll)
+
 		
 		#Charms Tab Layout
 		self.charmstab.setLayout(self.charmstab.layout)
 		
+
+
+
 		#Combat Tab Content
 		self.weaponsTree = WeaponTree()
 		self.armorTree = ArmorTree()
@@ -246,6 +260,12 @@ class Main(QMainWindow):
 	def dice_pool_update(self):
 		self.dicepool = self.abil_dicepool + self.att_dicepool + self.diebox.value()
 
+
+	def add_charm_tree(self):
+		self.CharmTreeArray.append(CharmTree())
+		
+		self.charmstabTree.addWidget(self.CharmTreeArray[-1])
+
 	def open_char_file(self):
 		fname = QFileDialog.getOpenFileName(self, 'Open file', 'F:\Projects\PyQt projects\Own\Exalted-3e-Character-and-Combat-Manager')
 		self.filenames = []
@@ -260,10 +280,21 @@ class Main(QMainWindow):
 		readabilratings = chardata[2].split(",")
 		while len(self.AbilArray) < len(readabils):
 			self.add_ability_box()
-			print(len(self.AbilArray))
 		for i in range(len(readabils)):
 			self.AbilArray[i].AbilName.setText(str(readabils[i]))
 			self.AbilArray[i].AbilRating.setValue(int(readabilratings[i]))
+		readcharmtrees = chardata[3].split("[Tree]")
+		while len(self.charmTreeArray.CharmTreeArray) < len(readcharmtrees):
+				self.charmTreeArray.add_charm_tree()
+		for i in range(len(readcharmtrees)):
+			readcharms = readcharmtrees[i].split(":")
+			self.charmTreeArray.CharmTreeArray[i].CharmTreeName.setText(readcharms[0])
+			while len(self.charmTreeArray.CharmTreeArray[i].CharmArray) < len(readcharms) - 1:
+				self.charmTreeArray.CharmTreeArray[i].add_charm_single()
+			for j in range(1,len(readcharms)):
+				readsingle = readcharms[j].split(",")
+				self.charmTreeArray.CharmTreeArray[i].CharmArray[j-1].CharmName.setText(readsingle[0])
+
 	
 	def dragEnterEvent(self, e):
 		e.accept()
@@ -273,13 +304,13 @@ class Main(QMainWindow):
 		widget = e.source()
 
 
-		for n in range(self.charmstab.layout.count()):
+		for n in range(self.charmstabTree.count()):
             # Get the widget at each index in turn.
-			w = self.charmstab.layout.itemAt(n).widget()
+			w = self.charmstabTree.itemAt(n).widget()
 			if pos.y() < w.y() + w.size().height() and pos.y() > w.y():
                 # We didn't drag past this widget.
                 # insert to the left of it.
-				self.charmstab.layout.insertWidget(n, widget)
+				self.charmstabTree.insertWidget(n, widget)
 				break
 
 		e.accept()
